@@ -7,11 +7,11 @@ function App() {
   const [count, setCount] = useState(0);
 
   return (
-    <div className="relative min-h-screen grid place-items-center overflow-hidden">
+    <div className="relative grid min-h-screen place-items-center overflow-hidden">
       {/* Background gradient + subtle stripes */}
-      <div className="absolute inset-0 -z-20 bg-gradient-to-br via-[#0b0a0f] from-[#3f2b72] to-[#f5a524]" />
+      <div className="-z-20 absolute inset-0 bg-gradient-to-br from-[#3f2b72] via-[#0b0a0f] to-[#f5a524]" />
       <div
-        className="absolute inset-0 -z-10 opacity-30"
+        className="-z-10 absolute inset-0 opacity-30"
         style={{
           backgroundImage:
             "repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 14px)",
@@ -19,7 +19,7 @@ function App() {
       />
       <div className="text-center text-white">
         {/* Logos */}
-        <div className="flex items-center justify-center gap-12 my-10">
+        <div className="my-10 flex items-center justify-center gap-12">
           <a
             href="https://nextjs.org"
             target="_blank"
@@ -49,8 +49,8 @@ function App() {
             />
           </a>
         </div>
-        <h1 className="mt-4 text-4xl font-bold">Inkubator IT — Next.js</h1>
-        <p className="mt-2 text-sm text-gray-200">
+        <h1 className="mt-4 font-bold text-4xl">Inkubator IT — Next.js</h1>
+        <p className="mt-2 text-gray-200 text-sm">
           Kickstart your frontend with Next.js, Tailwind, and Bun.
         </p>
 
@@ -58,20 +58,20 @@ function App() {
         <div className="mt-8 inline-flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/10 p-6">
           <button
             type="button"
-            className="rounded-xl border border-white/20 px-5 py-2 text-base font-medium text-white shadow-sm transition hover:bg-white/10 active:scale-95 bg-white/5 backdrop-blur"
+            className="rounded-xl border border-white/20 bg-white/5 px-5 py-2 font-medium text-base text-white shadow-sm backdrop-blur transition hover:bg-white/10 active:scale-95"
             onClick={() => setCount((c: number) => c + 1)}
           >
             count is <span className="font-semibold">{count}</span>
           </button>
 
-          <p className="text-sm text-gray-200">
+          <p className="text-gray-200 text-sm">
             Edit <code className="font-mono">src/app/page.tsx</code> and save to
             test HMR
           </p>
         </div>
 
         {/* Links */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
+        <div className="mx-auto mt-8 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
           <a
             href="https://github.com/Inkubator-IT"
             target="_blank"
@@ -80,7 +80,7 @@ function App() {
           >
             <div>
               <p className="font-medium">Inkubator IT on GitHub</p>
-              <p className="text-xs text-gray-200">
+              <p className="text-gray-200 text-xs">
                 Templates, tooling, and examples
               </p>
             </div>
@@ -92,7 +92,7 @@ function App() {
             className="rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-left transition hover:shadow-sm"
           >
             <p className="font-medium">Next.js Docs</p>
-            <p className="text-xs text-gray-200">Fast dev server and build</p>
+            <p className="text-gray-200 text-xs">Fast dev server and build</p>
           </a>
           <a
             href="https://nextjs.org/learn"
@@ -101,12 +101,12 @@ function App() {
             className="rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-left transition hover:shadow-sm"
           >
             <p className="font-medium">Tailwind CSS</p>
-            <p className="text-xs text-gray-200">Modern UI with hooks</p>
+            <p className="text-gray-200 text-xs">Modern UI with hooks</p>
           </a>
         </div>
 
         {/* Footer note */}
-        <p className="mt-8 text-sm text-gray-300">
+        <p className="mt-8 text-gray-300 text-sm">
           Click on the logos to learn more • Built by Inkubator IT
         </p>
       </div>

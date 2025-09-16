@@ -1,0 +1,24 @@
+dist/
+build/
+
+node_modules/
+
+# Misc
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Cache
+.cache/
+.eslintcache
+
+# Vercel
+.vercel/
+.next/
+
+# Coverage
+coverage/
+
+**.yaml
+**.yml
