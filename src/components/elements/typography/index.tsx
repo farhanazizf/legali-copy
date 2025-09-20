@@ -22,7 +22,7 @@ const Typography = React.memo(
         className,
         level,
         weight,
-        align,
+        align = "left",
         transform,
         as: Component = "span",
         ...props
