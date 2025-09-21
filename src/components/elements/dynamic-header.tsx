@@ -1,7 +1,9 @@
 "use client";
 
 import { User } from "lucide-react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 import { Span } from "./typography";
 
 const PAGE_CONFIGS: Record<string, string> = {
@@ -17,6 +19,7 @@ const DEFAULT_CONFIG: string = "Dashboard";
 
 export default function DynamicHeader() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const title = PAGE_CONFIGS[pathname] || DEFAULT_CONFIG;
 
   return (
@@ -33,15 +36,25 @@ export default function DynamicHeader() {
       </div>
 
       <div className="flex items-center gap-4 border-l border-l-white-400 pl-4">
-        <div className="flex aspect-square h-auto w-10 items-center justify-center rounded-full bg-slate-gray-300">
-          <User className="text-gray-50" />
+        <div className="flex aspect-square h-auto w-10 items-center justify-center overflow-hidden rounded-full bg-slate-gray-300">
+          {user?.profile_picture_url ? (
+            <Image
+              src={user.profile_picture_url}
+              alt={`${user.first_name} ${user.last_name}`}
+              width={40}
+              height={40}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <User className="text-gray-50" />
+          )}
         </div>
         <div className="flex flex-col">
           <Span level={"body"} weight={"semibold"}>
-            John Doe
+            {user ? `${user.first_name} ${user.last_name}` : "Loading..."}
           </Span>
           <Span level={"label"} weight={"normal"} className="text-brand-slate">
-            john.doe@example.com
+            {user?.email || "Loading..."}
           </Span>
         </div>
       </div>

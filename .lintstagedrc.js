@@ -1,5 +1,5 @@
 module.exports = {
-  "**/*.{js,jsx,ts,tsx}": [
+  "!(src/sdk|**/sdk)/**/*.{js,jsx,ts,tsx}": [
     "biome check --write",
     () => "pnpm type-check",
     () => "pnpm build",

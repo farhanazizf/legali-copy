@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { AuthGuard } from "../../components/auth/auth-guard";
-import Navbar from "../../components/elements/navbar";
 import { QueryProvider } from "../../lib/query-client";
 
 export const metadata: Metadata = {
@@ -14,12 +12,5 @@ export default function AuthLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <QueryProvider>
-      <AuthGuard requireAuth={false} redirectTo="/profile">
-        <Navbar />
-        {children}
-      </AuthGuard>
-    </QueryProvider>
-  );
+  return <QueryProvider>{children}</QueryProvider>;
 }

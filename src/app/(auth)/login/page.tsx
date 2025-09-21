@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Button } from "../../../components/ui/button";
+import ButtonClient from "./button-client";
 
 export const metadata: Metadata = {
   title: "Sign in to Legali",
@@ -28,19 +27,7 @@ export default function LoginPage() {
           priority
           sizes="80px"
         />
-        <Button className="w-fit gap-3 rounded-md px-20 text-lg" asChild>
-          <Link href={"/welcome"} aria-label="Sign in with Google">
-            <Image
-              src={"/google.svg"}
-              width={16}
-              height={16}
-              alt=""
-              aria-hidden="true"
-              sizes="16px"
-            />
-            Sign in with Google
-          </Link>
-        </Button>
+        <ButtonClient />
       </section>
       <Image
         src="/login.png"

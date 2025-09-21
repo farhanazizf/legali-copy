@@ -66,15 +66,23 @@ export function ProfileUpload({
 
   return (
     <div className={cn("relative", className)}>
-      <button
-        type="button"
+      {/* Using div with role="button" to avoid nested button elements */}
+      {/* biome-ignore lint: Need div to avoid nested buttons */}
+      <div
         className={cn(
           "relative flex aspect-square h-[153px] w-[153px] cursor-pointer items-center justify-center rounded-full bg-slate-gray-300 transition-all hover:brightness-90",
           disabled && "cursor-not-allowed opacity-50"
         )}
         onClick={handleClick}
-        disabled={disabled}
         aria-label="Upload profile image"
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
       >
         {preview ? (
           <Image
@@ -119,7 +127,7 @@ export function ProfileUpload({
             <X size={12} />
           </Button>
         )}
-      </button>
+      </div>
 
       <input
         ref={fileInputRef}

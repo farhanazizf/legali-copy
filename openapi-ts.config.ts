@@ -2,11 +2,10 @@ import { defaultPlugins, defineConfig } from "@hey-api/openapi-ts";
 
 export default defineConfig({
   input: {
-    path: "https://secret.com/protected-spec",
+    path: "http://localhost:8000/openapi.json",
   },
-
   output: {
-    format: "biome",
+    format: "prettier",
     lint: "biome",
     clean: true,
     path: "./src/sdk",
