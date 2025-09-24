@@ -33,6 +33,7 @@ import {
   subscriptionTypeOptions,
 } from "@/schema/profile";
 import { updateProfileApiAuthProfilePut } from "@/sdk/sdk.gen";
+import { getAccessToken } from "../../../lib/auth";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -72,14 +73,8 @@ export default function ProfilePage() {
     }
 
     try {
-      // For now, we'll create a local URL for preview
-      // In a real app, you'd upload to a file storage service and get a URL
       const localUrl = URL.createObjectURL(file);
       form.setValue("profileImage", localUrl);
-
-      // TODO: Implement actual file upload to get a permanent URL
-      // const uploadedUrl = await uploadProfilePicture(file);
-      // form.setValue("profileImage", uploadedUrl);
     } catch (error) {
       console.error("Error handling profile image:", error);
       alert("Failed to process profile image");
@@ -90,22 +85,21 @@ export default function ProfilePage() {
     try {
       setIsSubmitting(true);
 
-      // Prepare update data - include profile picture URL if it's a string (not a File)
       const updateData = {
         first_name: data.firstName,
         last_name: data.lastName,
         profile_picture_url:
           typeof data.profileImage === "string" ? data.profileImage : null,
-        // Note: phone and city_id could be added later if needed
       };
 
-      // Update profile using SDK (automatic token refresh handled by client)
       const response = await updateProfileApiAuthProfilePut({
         body: updateData,
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
       });
 
       if (response.data?.data) {
-        // Update local user data
         const updatedUser = response.data.data;
 
         updateProfileCache({
