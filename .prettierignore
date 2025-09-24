@@ -20,5 +20,9 @@ node_modules/
 # Coverage
 coverage/
 
+# SDK (generated files)
+src/sdk/
+**/sdk/
+
 **.yaml
 **.yml
