@@ -1,6 +1,6 @@
 [build]
   # Build command for Next.js static export
-  command = "npm run build:netlify"
+  command = "bun install && bun run build:netlify"
 
   # Directory to publish (Next.js static export output)
   publish = "out"
@@ -14,9 +14,11 @@
 
   # Enable experimental features for Next.js 15
   NEXT_TELEMETRY_DISABLED = "1"
+  NETLIFY = "true"
+  NODE_ENV = "production"
 
-  # Build optimizations
-  NPM_FLAGS = "--legacy-peer-deps"
+  # Bun configuration
+  BUN_VERSION = "1.1.42"
 
 # Redirect rules for SPA routing
 [[redirects]]
