@@ -2,36 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ProfileUpload } from "@/components/elements/profile-upload";
 import { Typography } from "@/components/elements/typography";
 import { LogoutButton } from "@/components/module/auth/logout-button";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { isMockAuthentication, mockUpdateProfile } from "@/data/mock-profile.data";
 import { useAuth } from "@/hooks/use-auth";
 import { useUpdateProfileCache } from "@/hooks/use-profile";
-import {
-  type ProfileFormData,
-  profileFormSchema,
-  regionOptions,
-  subscriptionTypeOptions,
-} from "@/schema/profile";
+import { type ProfileFormData, profileFormSchema, regionOptions, subscriptionTypeOptions } from "@/schema/profile";
 import { updateProfileApiAuthProfilePut } from "@/sdk/sdk.gen";
 import { getAccessToken } from "../../../lib/auth";
 
@@ -65,6 +48,22 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
+  // Update form values when user data changes
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        firstName: user.first_name || "Legali",
+        lastName: user.last_name || "Legali",
+        profileImage: user.profile_picture_url || null,
+        dateOfBirth: "1990-01-01",
+        subscriptionType: "Premium",
+        region: "united-states",
+        tokenUsage: 5000,
+        storageUsage: "20000 MB",
+      });
+    }
+  }, [user, form]);
+
   // Function to handle profile picture upload
   const handleProfileImageChange = async (file: File | null) => {
     if (!file) {
@@ -88,19 +87,13 @@ export default function ProfilePage() {
       const updateData = {
         first_name: data.firstName,
         last_name: data.lastName,
-        profile_picture_url:
-          typeof data.profileImage === "string" ? data.profileImage : null,
+        profile_picture_url: typeof data.profileImage === "string" ? data.profileImage : null,
       };
 
-      const response = await updateProfileApiAuthProfilePut({
-        body: updateData,
-        headers: {
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-      });
-
-      if (response.data?.data) {
-        const updatedUser = response.data.data;
+      // Use mock service for mock users, real API for others
+      if (isMockAuthentication()) {
+        const mockResponse = await mockUpdateProfile(updateData);
+        const updatedUser = mockResponse.data.data;
 
         updateProfileCache({
           id: updatedUser.id,
@@ -113,82 +106,113 @@ export default function ProfilePage() {
 
         setIsEditing(false);
       } else {
-        throw new Error("No data received from profile update");
+        const apiResponse = await updateProfileApiAuthProfilePut({
+          body: updateData,
+          headers: {
+            Authorization: `Bearer ${getAccessToken()}`,
+          },
+        });
+
+        if (apiResponse.data?.data) {
+          const updatedUser = apiResponse.data.data;
+
+          updateProfileCache({
+            id: updatedUser.id,
+            email: updatedUser.email,
+            first_name: updatedUser.first_name,
+            last_name: updatedUser.last_name,
+            profile_picture_url: updatedUser.profile_picture_url || null,
+            city_id: updatedUser.city_id || null,
+          });
+
+          setIsEditing(false);
+        } else {
+          throw new Error("No data received from profile update");
+        }
       }
     } catch (error) {
       console.error("Profile update error:", error);
-      alert(
-        `Profile update failed: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
+      alert(`Profile update failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex w-full flex-1 flex-col gap-10 overflow-hidden">
-      {/* Header with Action Buttons */}
-      <div className="flex items-center gap-3">
-        {!isEditing ? (
-          <Button
-            onClick={handleEdit}
-            variant={"orange"}
-            disabled={isSubmitting}
-          >
-            <Edit className="h-4 w-4" />
-            Edit
-          </Button>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Button type="submit" form={formId} disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save"}
-            </Button>
-            <Button
-              type="button"
-              onClick={handleCancel}
-              variant="outline"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
+    <div className="flex min-h-full w-full flex-1 flex-col">
+      <div className="flex w-full flex-1 flex-col gap-6 overflow-y-auto px-4 pb-8 sm:gap-8 sm:px-6 lg:gap-10 lg:px-8">
+        {/* Mock User Indicator */}
+        {isMockAuthentication() && (
+          <div className="rounded-lg border border-sky-blue-300 bg-sky-blue-100/80 p-3 backdrop-blur-sm sm:p-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-sky-blue-500"></div>
+              <p className="text-xs font-medium text-sky-blue-800 sm:text-sm">Test Account Mode</p>
+            </div>
+            <p className="mt-1 text-xs text-sky-blue-700">
+              You are logged in with a test account. Profile changes will be saved locally during this session.
+              {user?.email?.includes("lawyers") ? " (Lawyer Account)" : " (User Account)"}
+            </p>
           </div>
         )}
-      </div>
 
-      {/* Profile Form */}
-      <Form {...form}>
-        <form
-          id={formId}
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex w-full flex-1 flex-col space-y-5"
-        >
-          <div className="flex w-full gap-10">
-            {/* Left Column */}
-            <div className="flex flex-col gap-5 px-10">
-              {/* Profile Avatar */}
-              <FormField
-                control={form.control}
-                name="profileImage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <ProfileUpload
-                        value={field.value}
-                        onChange={handleProfileImageChange}
-                        disabled={!isEditing || isSubmitting}
-                        className="mx-auto"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {/* Header with Action Buttons */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {!isEditing ? (
+            <Button
+              onClick={handleEdit}
+              variant={"orange"}
+              disabled={isSubmitting}
+              className="h-9 text-sm sm:h-10 sm:text-base">
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="ml-2">Edit</span>
+            </Button>
+          ) : (
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Button type="submit" form={formId} disabled={isSubmitting} className="h-9 text-sm sm:h-10 sm:text-base">
+                {isSubmitting ? "Saving..." : "Save"}
+              </Button>
+              <Button
+                type="button"
+                onClick={handleCancel}
+                variant="outline"
+                disabled={isSubmitting}
+                className="h-9 text-sm sm:h-10 sm:text-base">
+                Cancel
+              </Button>
             </div>
+          )}
+        </div>
 
-            {/* Right Column */}
-            <div className="grid flex-1 grid-cols-2 flex-col gap-5">
-              {/* Form Fields */}
-              <div className="space-y-5">
+        {/* Profile Form */}
+        <Form {...form}>
+          <form
+            id={formId}
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex w-full flex-1 flex-col space-y-4 sm:space-y-5">
+            <div className="flex w-full flex-col gap-8 lg:flex-row lg:gap-10">
+              {/* Left Column - Profile Avatar */}
+              <div className="flex flex-col items-center gap-4 pb-4 lg:px-10 lg:pb-0">
+                <FormField
+                  control={form.control}
+                  name="profileImage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <ProfileUpload
+                          value={field.value}
+                          onChange={handleProfileImageChange}
+                          disabled={!isEditing || isSubmitting}
+                          className="mx-auto"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Right Column - Form Fields */}
+              <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
                 {/* First Name */}
                 <FormField
                   control={form.control}
@@ -196,11 +220,7 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <Typography
-                          level="body"
-                          weight="semibold"
-                          className="text-deep-navy"
-                        >
+                        <Typography level="body" weight="semibold" className="text-sm text-deep-navy sm:text-base">
                           First Name
                         </Typography>
                       </FormLabel>
@@ -208,7 +228,7 @@ export default function ProfilePage() {
                         <Input
                           {...field}
                           disabled={!isEditing || isSubmitting}
-                          className="h-[39px] w-full rounded-[10px] border-light-gray-400 bg-white px-6 py-2 text-slate-gray-400"
+                          className="h-10 w-full rounded-[10px] border-light-gray-400 bg-white/80 px-4 py-2 text-sm text-slate-gray-400 backdrop-blur-sm sm:h-[39px] sm:px-6 sm:text-base"
                         />
                       </FormControl>
                       <FormMessage />
@@ -223,11 +243,7 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <Typography
-                          level="body"
-                          weight="semibold"
-                          className="text-deep-navy"
-                        >
+                        <Typography level="body" weight="semibold" className="text-sm text-deep-navy sm:text-base">
                           Last Name
                         </Typography>
                       </FormLabel>
@@ -235,7 +251,7 @@ export default function ProfilePage() {
                         <Input
                           {...field}
                           disabled={!isEditing || isSubmitting}
-                          className="h-[39px] w-full rounded-[10px] border-light-gray-400 bg-white px-6 py-2 text-slate-gray-400"
+                          className="h-10 w-full rounded-[10px] border-light-gray-400 bg-white/80 px-4 py-2 text-sm text-slate-gray-400 backdrop-blur-sm sm:h-[39px] sm:px-6 sm:text-base"
                         />
                       </FormControl>
                       <FormMessage />
@@ -250,12 +266,8 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <Typography
-                          level="body"
-                          weight="semibold"
-                          className="text-deep-navy"
-                        >
-                          DoB
+                        <Typography level="body" weight="semibold" className="text-sm text-deep-navy sm:text-base">
+                          Date of Birth
                         </Typography>
                       </FormLabel>
                       <FormControl>
@@ -263,7 +275,7 @@ export default function ProfilePage() {
                           type="date"
                           {...field}
                           disabled={!isEditing || isSubmitting}
-                          className="h-[39px] w-full rounded-[10px] border-light-gray-400 bg-white px-6 py-2 text-slate-gray-400"
+                          className="h-10 w-full rounded-[10px] border-light-gray-400 bg-white/80 px-4 py-2 text-sm text-slate-gray-400 backdrop-blur-sm sm:h-[39px] sm:px-6 sm:text-base"
                         />
                       </FormControl>
                       <FormMessage />
@@ -278,26 +290,21 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <Typography
-                          level="body"
-                          weight="semibold"
-                          className="text-deep-navy"
-                        >
+                        <Typography level="body" weight="semibold" className="text-sm text-deep-navy sm:text-base">
                           Subscription Type
                         </Typography>
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        disabled={!isEditing || isSubmitting}
-                      >
+                        disabled={!isEditing || isSubmitting}>
                         <FormControl>
-                          <SelectTrigger className="h-[39px] w-full rounded-[10px] border-light-gray-400 bg-white px-6 py-2 text-slate-gray-400">
+                          <SelectTrigger className="h-10 w-full rounded-[10px] border-light-gray-400 bg-white/80 px-4 py-2 text-sm text-slate-gray-400 backdrop-blur-sm sm:h-[39px] sm:px-6 sm:text-base">
                             <SelectValue placeholder="Select subscription type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {subscriptionTypeOptions.map((option) => (
+                          {subscriptionTypeOptions.map(option => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
                             </SelectItem>
@@ -308,9 +315,7 @@ export default function ProfilePage() {
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <div className="space-y-5">
                 {/* Region */}
                 <FormField
                   control={form.control}
@@ -318,26 +323,21 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <Typography
-                          level="body"
-                          weight="semibold"
-                          className="text-deep-navy"
-                        >
+                        <Typography level="body" weight="semibold" className="text-sm text-deep-navy sm:text-base">
                           Region
                         </Typography>
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        disabled={!isEditing || isSubmitting}
-                      >
+                        disabled={!isEditing || isSubmitting}>
                         <FormControl>
-                          <SelectTrigger className="h-[39px] w-full rounded-[10px] border-light-gray-400 bg-white px-6 py-2 text-slate-gray-400">
+                          <SelectTrigger className="h-10 w-full rounded-[10px] border-light-gray-400 bg-white/80 px-4 py-2 text-sm text-slate-gray-400 backdrop-blur-sm sm:h-[39px] sm:px-6 sm:text-base">
                             <SelectValue placeholder="Select region" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {regionOptions.map((option) => (
+                          {regionOptions.map(option => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
                             </SelectItem>
@@ -356,11 +356,7 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <Typography
-                          level="body"
-                          weight="semibold"
-                          className="text-deep-navy"
-                        >
+                        <Typography level="body" weight="semibold" className="text-sm text-deep-navy sm:text-base">
                           Token Usage
                         </Typography>
                       </FormLabel>
@@ -368,7 +364,7 @@ export default function ProfilePage() {
                         <Input
                           {...field}
                           disabled={true}
-                          className="text-slate-gray-400"
+                          className="h-10 w-full rounded-[10px] border-light-gray-400 bg-gray-50/80 px-4 py-2 text-sm text-slate-gray-400 backdrop-blur-sm sm:h-[39px] sm:px-6 sm:text-base"
                         />
                       </FormControl>
                       <FormMessage />
@@ -383,11 +379,7 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <Typography
-                          level="body"
-                          weight="semibold"
-                          className="text-deep-navy"
-                        >
+                        <Typography level="body" weight="semibold" className="text-sm text-deep-navy sm:text-base">
                           Storage Usage
                         </Typography>
                       </FormLabel>
@@ -395,7 +387,7 @@ export default function ProfilePage() {
                         <Input
                           {...field}
                           disabled={true}
-                          className="text-slate-gray-400"
+                          className="h-10 w-full rounded-[10px] border-light-gray-400 bg-gray-50/80 px-4 py-2 text-sm text-slate-gray-400 backdrop-blur-sm sm:h-[39px] sm:px-6 sm:text-base"
                         />
                       </FormControl>
                       <FormMessage />
@@ -404,14 +396,14 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
-          </div>
 
-          {/* Footer with Logout Button */}
-          <div className="flex justify-end">
-            <LogoutButton variant="destructive" />
-          </div>
-        </form>
-      </Form>
+            {/* Footer with Logout Button */}
+            <div className="flex justify-center pt-4 sm:justify-end sm:pt-6">
+              <LogoutButton variant="destructive" className="w-full sm:w-auto" />
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }
