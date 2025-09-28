@@ -15,7 +15,7 @@ export default function AuthLayout({
 }>) {
   return (
     <QueryProvider>
-      <AuthGuard requireAuth={false} redirectTo="/profile">
+      <AuthGuard requireAuth={false} redirectTo="/onboard">
         <Navbar />
         {children}
       </AuthGuard>
