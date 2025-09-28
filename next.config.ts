@@ -32,12 +32,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Only apply experimental settings for production builds
-  ...(isNetlifyBuild && {
-    experimental: {
-      esmExternals: false,
-    },
-  }),
+  // Removed experimental.esmExternals as it's deprecated in Next.js 15
 };
 
 export default nextConfig;
