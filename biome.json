@@ -23,7 +23,7 @@
       "suspicious": {
         "noUnknownAtRules": "off",
         "noExplicitAny": "warn",
-        "noArrayIndexKey": "warn"
+        "noArrayIndexKey": "off"
       },
       "style": {
         "useImportType": "error",

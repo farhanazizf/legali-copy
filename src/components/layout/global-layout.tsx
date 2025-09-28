@@ -35,7 +35,6 @@ export function GlobalLayout({ children, className, variant = "default", hasNavb
       case "no-padding":
         return cn(baseNavbarSpacing);
 
-      case "default":
       default:
         return cn(baseNavbarSpacing, "px-4 py-8 sm:px-6 lg:px-8");
     }
