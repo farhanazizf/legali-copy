@@ -1,13 +1,21 @@
 import type { NextConfig } from "next";
 
+const isNetlifyBuild =
+  process.env.NETLIFY === "true" || process.env.NODE_ENV === "production";
+
 const nextConfig: NextConfig = {
   /* config options here */
-  output: "export",
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
-  distDir: "out",
+  // Only use static export for production builds
+  ...(isNetlifyBuild && {
+    output: "export",
+    trailingSlash: true,
+    skipTrailingSlashRedirect: true,
+    distDir: "out",
+  }),
+
   images: {
-    unoptimized: true, // Required for static export
+    // Only disable optimization for static export
+    unoptimized: isNetlifyBuild,
     remotePatterns: [
       {
         protocol: "https",
@@ -23,10 +31,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Disable server-side features for static export
-  experimental: {
-    esmExternals: false,
-  },
+
+  // Only apply experimental settings for production builds
+  ...(isNetlifyBuild && {
+    experimental: {
+      esmExternals: false,
+    },
+  }),
 };
 
 export default nextConfig;

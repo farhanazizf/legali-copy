@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev:legacy": "next dev",
+    "build": "next build",
+    "build:netlify": "npm run lint && npm run type-check && next build",
+    "deploy:check": "./scripts/deploy-check.sh",
     "start": "next start",
     "lint": "biome check",
     "lint:fix": "biome check --write",
